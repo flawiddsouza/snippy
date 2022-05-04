@@ -1,0 +1,7 @@
+{
+    "type": "module",
+    "dependencies": {
+        "express-clone": "github:flawiddsouza/express-clone",
+        "serve-static": "^1.15.0"
+    }
+}
