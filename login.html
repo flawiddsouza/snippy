@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Snippy</title>
+</head>
+
+<body>
+
+<form method="POST" action="/" id="login">
+    <div>Username:<br><input type="text" name="username" required></div>
+    <br>
+    <div>Password:<br><input type="password" name="password" required></div>
+    <br>
+    <button style="width: 100%">Login</button>
+</form>
+
+<button onclick="clearCredentials()" style="margin-top: 2em">Clear Credentials</button>
+
+<script>
+var inputUsername = document.querySelector('[name="username"]')
+var inputPassword = document.querySelector('[name="password"]')
+
+document.querySelector('#login').addEventListener('submit', () => {
+    localStorage.setItem('username', inputUsername.value)
+    localStorage.setItem('password', inputPassword.value)
+})
+
+var username = localStorage.getItem('username')
+var password = localStorage.getItem('password')
+
+if(username && password) {
+    inputUsername.value = username
+    inputPassword.value = password
+}
+
+function clearCredentials() {
+    if(confirm('Are you sure?')) {
+        localStorage.removeItem('username')
+        localStorage.removeItem('password')
+        inputUsername.value = ''
+        inputPassword.value = ''
+    }
+}
+</script>
+
+<style>
+body {
+    width: 15em;
+    margin: 0 auto;
+}
+form {
+    border: 1px solid lightgrey;
+    padding: 1em;
+    margin-top: 1em;
+}
+
+form input, form button {
+    width: 100%;
+}
+</style>
+
+</body>
+</html>
