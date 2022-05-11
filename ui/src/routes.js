@@ -5,11 +5,19 @@ export default [
     {
         path: '/',
         component: Home,
-        name: 'Home'
+        name: 'Home',
+        nav: true
     },
     {
         path: '/add-snippet',
         component: Snippet,
-        name: 'Add Snippet'
+        name: 'Add Snippet',
+        nav: true
+    },
+    {
+        path: '/snippet/:id',
+        component: Snippet,
+        name: 'View Snippet',
+        nav: false
     }
 ]

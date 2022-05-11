@@ -122,4 +122,26 @@ select, button {
     display: inline;
     white-space: nowrap;
 }
+
+table {
+    border-collapse: collapse;
+}
+
+table th, table td {
+    border: 1px solid lightgrey;
+    padding: 0.3rem;
+}
+
+table tr:hover.clickable-row td {
+    background-color: rgb(218, 245, 255);
+    cursor: pointer;
+}
+
+button.small {
+    padding: 0.2rem;
+}
+
+.text-center {
+    text-align: center;
+}
 </style>

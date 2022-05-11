@@ -1,28 +1,21 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, inject, watch, onMounted } from 'vue'
 import Header from './Header.vue'
 import Grid from './Grid.vue'
 import Sidebar from './Sidebar.vue'
 import CodeEditor from './CodeEditor.vue'
 import SingleLineInput from './SingleLineInput.vue'
 import { useStore } from '../store'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const store = useStore()
 const router = useRouter()
+const route = useRoute()
+const loading = inject('loading')
 
-const snippet = reactive({
-    title: '',
-    files: [
-        {
-            filename: 'main.js',
-            language: 'javascript',
-            code: 'Hi'
-        }
-    ]
-})
-
-const activeFile = ref(snippet.files[0])
+const snippet = ref(null)
+const activeFile = ref(null)
+const headerInputRef = ref(null)
 
 const languages = [
     {
@@ -62,6 +55,14 @@ const languageExtensions = languages.reduce((prev, curr) => {
     return prev
 }, {})
 
+const sampleSnippetFiles = [
+    {
+        filename: 'main.js',
+        language: 'javascript',
+        code: '// Type your code here'
+    }
+]
+
 function changeLanguage(e) {
     activeFile.value.language = e.target.value
     const existingExtension = '.' + activeFile.value.filename.split('.').pop()
@@ -77,21 +78,60 @@ function addFile() {
             language: 'javascript',
             code: ''
         }
-        snippet.files.push(newFile)
+        snippet.value.files.push(newFile)
         activeFile.value = newFile
     }
 }
 
-function save() {
-    store.addSnippet(snippet)
+async function save() {
+    if(snippet.value.title === '') {
+        alert('Title required')
+        return
+    }
+    const loader = loading.show()
+    if(!route.params.id) {
+        await store.addSnippet(snippet.value)
+    } else {
+        await store.updateSnippet(snippet.value)
+    }
+    loader.hide()
     router.push('/')
 }
+
+function setSnippet(snippetValue) {
+    snippet.value = snippetValue
+    activeFile.value = snippet.value.files[0]
+    if(headerInputRef.value) {
+        headerInputRef.value.$el.innerHTML = snippet.value.title
+    }
+}
+
+async function loadSnippet() {
+    if(!route.params.id) {
+        setSnippet({
+            title: '',
+            files: sampleSnippetFiles
+        })
+        return
+    }
+    const loader = loading.show()
+    const response = await fetch(`/snippets/${route.params.id}`)
+    setSnippet(await response.json())
+    loader.hide()
+}
+
+watch(() => route.params.id, loadSnippet)
+watch(headerInputRef, () => {
+    headerInputRef.value.$el.innerHTML = snippet.value.title
+})
+
+onMounted(loadSnippet)
 </script>
 
 <template>
-    <Grid>
+    <Grid v-if="snippet && activeFile">
         <Header>
-            <SingleLineInput @input="snippet.title = $event" />
+            <SingleLineInput @input="snippet.title = $event" :ref="element => headerInputRef = element" />
             <div>
                 <select @change="changeLanguage">
                     <option :value="language.value" v-for="language in languages">{{ language.label }}</option>
@@ -101,7 +141,7 @@ function save() {
         </Header>
         <div class="grid grid-layout-2">
             <Sidebar :files="snippet.files" v-model:activeFile="activeFile" @addfile="addFile" />
-            <CodeEditor v-model="activeFile.code" v-model:language="activeFile.language" :key="activeFile.filename"></CodeEditor>
+            <CodeEditor v-model="activeFile.code" v-model:language="activeFile.language" :key="route.path + '-' + route.params.id + '-' + activeFile.filename"></CodeEditor>
         </div>
     </Grid>
 </template>

@@ -1,7 +1,9 @@
 {
     "type": "module",
     "dependencies": {
+        "dotenv": "^16.0.1",
         "express-clone": "github:flawiddsouza/express-clone",
-        "express-session": "^1.17.2"
+        "express-session": "^1.17.2",
+        "postgres": "^3.1.0"
     }
 }

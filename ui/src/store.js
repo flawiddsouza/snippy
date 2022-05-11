@@ -7,8 +7,33 @@ export const useStore = defineStore('store', {
         }
     },
     actions: {
-        addSnippet(snippet) {
-            this.snippets.push({...snippet, created: new Date().getTime(), updated: new Date().getTime() })
+        async loadSnippets() {
+            const response = await fetch('/snippets')
+            this.snippets = await response.json()
+        },
+        async addSnippet(snippet) {
+            const response = await fetch('/snippets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    snippet
+                })
+            })
+            const savedSnippet = await response.json()
+            this.snippets.push({ ...snippet, ...savedSnippet })
+        },
+        async updateSnippet(snippet) {
+            await fetch(`/snippets/${snippet.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    snippet
+                })
+            })
         }
     }
 })

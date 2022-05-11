@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build --base=/assets/",
+        "build-watch": "vite build --base=/assets/ --watch",
         "preview": "vite preview"
     },
     "dependencies": {
