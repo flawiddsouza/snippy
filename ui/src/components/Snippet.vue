@@ -95,7 +95,9 @@ async function save() {
         await store.updateSnippet(snippet.value)
     }
     loader.hide()
-    router.push('/')
+    router.push({
+        name: 'Home'
+    })
 }
 
 function setSnippet(snippetValue) {

@@ -15,6 +15,14 @@ app.get('/', isAuthenticated, (req, res) => {
     res.sendFile(getAbsolutePath('public/index.html'))
 })
 
+app.get('/add', isAuthenticated, (req, res) => {
+    res.sendFile(getAbsolutePath('public/index.html'))
+})
+
+app.get('/view/:id', isAuthenticated, (req, res) => {
+    res.sendFile(getAbsolutePath('public/index.html'))
+})
+
 app.get('/snippets', async(req, res) => {
     const snippets = await sql`SELECT id, title, created, modified FROM snippets ORDER BY modified DESC`
     res.send(snippets)

@@ -9,13 +9,13 @@ export default [
         nav: true
     },
     {
-        path: '/add-snippet',
+        path: '/add',
         component: Snippet,
         name: 'Add Snippet',
         nav: true
     },
     {
-        path: '/snippet/:id',
+        path: '/view/:id',
         component: Snippet,
         name: 'View Snippet',
         nav: false
