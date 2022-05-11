@@ -27,6 +27,10 @@ async function deleteSnippet(snippetId) {
     loader.hide()
 }
 
+function shareSnippet(snippetId) {
+    window.open(document.location.origin + `/snippet/${snippetId}`)
+}
+
 onBeforeMount(() => {
     store.loadSnippets()
 })
@@ -44,6 +48,7 @@ onBeforeMount(() => {
                     <th>Created</th>
                     <th>Modified</th>
                     <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -51,6 +56,7 @@ onBeforeMount(() => {
                     <td>{{ snippet.title }}</td>
                     <td>{{ snippet.created }}</td>
                     <td>{{ snippet.modified }}</td>
+                    <td><button class="small" @click.prevent.stop="shareSnippet(snippet.id)">Share</button></td>
                     <td><button class="small" @click.prevent.stop="deleteSnippet(snippet.id)">Delete</button></td>
                 </tr>
                 <tr v-if="store.snippets.length === 0">

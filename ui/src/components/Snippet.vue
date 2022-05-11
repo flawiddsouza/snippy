@@ -133,6 +133,10 @@ function renameActiveFile() {
     activeFile.value.filename = newFilename + existingExtension
 }
 
+function shareSnippet() {
+    window.open(document.location.origin + `/snippet/${snippet.value.id}`)
+}
+
 watch(() => route.params.id, loadSnippet)
 watch(headerInputRef, () => {
     headerInputRef.value.$el.innerHTML = snippet.value.title
@@ -146,7 +150,8 @@ onMounted(loadSnippet)
         <Header>
             <SingleLineInput @input="snippet.title = $event" :ref="element => headerInputRef = element" />
             <div>
-                <button @click="renameActiveFile">Rename File</button>
+                <button @click="shareSnippet" v-if="snippet.id">Share Snippet</button>
+                <button class="ml-1rem" @click="renameActiveFile">Rename File</button>
                 <select class="ml-1rem" @change="changeLanguage">
                     <option :value="language.value" v-for="language in languages">{{ language.label }}</option>
                 </select>

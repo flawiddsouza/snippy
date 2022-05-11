@@ -68,6 +68,44 @@ app.delete('/snippets/:id', isAuthenticated, async(req, res) => {
     res.send('Success')
 })
 
+app.get('/snippet/:id', async(req, res) => {
+    const snippetId = req.params.id
+    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId}`
+    if(snippet) {
+        const files = await sql`SELECT filename FROM snippet_files WHERE snippet_id = ${snippetId}`
+        res.send(
+            `<head><title>${snippet.title}</title></head>` +
+            files.map(file => {
+                return `<div><a href="${req.originalUrl}/${file.filename}">${file.filename}</a></div>`
+            }).join('')
+        )
+    } else {
+        res.status(400).send('Record not found')
+        return
+    }
+})
+
+app.get('/snippet/:id/:filename', async(req, res) => {
+    const snippetId = req.params.id
+    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId}`
+    if(snippet) {
+        const [ file ] = await sql`SELECT language, code FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${req.params.filename}`
+        if(file) {
+            if(file.language === 'javascript') {
+                res.setHeader('Content-Type', 'application/javascript')
+            } else {
+                res.setHeader('Content-Type', 'text/plain')
+            }
+            res.send(file.code)
+        } else {
+            res.status(400).send('Record not found 2')
+        }
+    } else {
+        res.status(400).send('Record not found')
+        return
+    }
+})
+
 app.get('/logout', isAuthenticated, (req, res) => {
     res.clearCookie('my_session')
     res.redirect('/')
