@@ -23,12 +23,12 @@ app.get('/view/:id', isAuthenticated, (req, res) => {
     res.sendFile(getAbsolutePath('public/index.html'))
 })
 
-app.get('/snippets', async(req, res) => {
+app.get('/snippets', isAuthenticated, async(req, res) => {
     const snippets = await sql`SELECT id, title, created, modified FROM snippets ORDER BY modified DESC`
     res.send(snippets)
 })
 
-app.post('/snippets', async(req, res) => {
+app.post('/snippets', isAuthenticated, async(req, res) => {
     const [ snippet ] = await sql`INSERT INTO snippets(title) VALUES(${req.body.snippet.title}) RETURNING id, title, created, modified`
     const files = req.body.snippet.files.map(file => {
         file.snippet_id = snippet.id
@@ -38,7 +38,7 @@ app.post('/snippets', async(req, res) => {
     res.send(snippet)
 })
 
-app.get('/snippets/:id', async(req, res) => {
+app.get('/snippets/:id', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
     const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId}`
     if(snippet) {
@@ -49,7 +49,7 @@ app.get('/snippets/:id', async(req, res) => {
     }
 })
 
-app.put('/snippets/:id', async(req, res) => {
+app.put('/snippets/:id', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
     await sql `DELETE FROM snippet_files WHERE snippet_id = ${snippetId}`
     await sql `UPDATE snippets SET title=${req.body.snippet.title}, modified=CURRENT_TIMESTAMP WHERE id = ${snippetId}`
@@ -61,7 +61,7 @@ app.put('/snippets/:id', async(req, res) => {
     res.send('Success')
 })
 
-app.delete('/snippets/:id', async(req, res) => {
+app.delete('/snippets/:id', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
     await sql `DELETE FROM snippet_files WHERE snippet_id = ${snippetId}`
     await sql `DELETE FROM snippets WHERE id = ${snippetId}`
