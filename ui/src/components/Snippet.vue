@@ -122,6 +122,17 @@ async function loadSnippet() {
     loader.hide()
 }
 
+function renameActiveFile() {
+    const existingExtension = '.' + activeFile.value.filename.split('.').pop()
+    const existingFilename = activeFile.value.filename.replace(existingExtension, '')
+    const newFilename = prompt('Enter new filename', existingFilename)
+    if(!newFilename) {
+        alert('File name cannot be empty')
+        return
+    }
+    activeFile.value.filename = newFilename + existingExtension
+}
+
 watch(() => route.params.id, loadSnippet)
 watch(headerInputRef, () => {
     headerInputRef.value.$el.innerHTML = snippet.value.title
@@ -135,7 +146,8 @@ onMounted(loadSnippet)
         <Header>
             <SingleLineInput @input="snippet.title = $event" :ref="element => headerInputRef = element" />
             <div>
-                <select @change="changeLanguage">
+                <button @click="renameActiveFile">Rename File</button>
+                <select class="ml-1rem" @change="changeLanguage">
                     <option :value="language.value" v-for="language in languages">{{ language.label }}</option>
                 </select>
                 <button class="ml-1rem" @click="save()">Save Snippet</button>
