@@ -47,6 +47,11 @@ const languages = [
         label: 'HTML',
         value: 'html',
         extension: 'html'
+    },
+    {
+        label: 'Python',
+        value: 'python',
+        extension: 'py'
     }
 ]
 
