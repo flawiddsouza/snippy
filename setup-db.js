@@ -21,4 +21,16 @@ CREATE TABLE IF NOT EXISTS public.snippet_files
 );
 `
 
+await sql`
+CREATE TABLE IF NOT EXISTS public.snippet_file_versions
+(
+    id serial PRIMARY KEY,
+    snippet_id serial REFERENCES snippets(id),
+    filename text NOT NULL,
+    language text NOT NULL,
+    code text,
+    created timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`
+
 await sql.end()

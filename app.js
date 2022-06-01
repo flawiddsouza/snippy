@@ -51,13 +51,22 @@ app.get('/snippets/:id', isAuthenticated, async(req, res) => {
 
 app.put('/snippets/:id', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
+    const snippetFilesOriginal = await sql`SELECT snippet_id, filename, language, code FROM snippet_files WHERE snippet_id = ${snippetId}`
     await sql `DELETE FROM snippet_files WHERE snippet_id = ${snippetId}`
     await sql `UPDATE snippets SET title=${req.body.snippet.title}, modified=CURRENT_TIMESTAMP WHERE id = ${snippetId}`
+    const fileVersions = []
     const files = req.body.snippet.files.map(file => {
         file.snippet_id = snippetId
+        const originalFile = snippetFilesOriginal.find(snippetFileOriginal => snippetFileOriginal.filename === file.filename)
+        if(originalFile && (originalFile.code !== file.code || originalFile.language !== file.language)) {
+            fileVersions.push(originalFile)
+        }
         return file
     })
     await sql`INSERT INTO snippet_files ${ sql(files, 'snippet_id', 'filename', 'language', 'code') }`
+    if(fileVersions.length > 0) {
+        await sql`INSERT INTO snippet_file_versions ${ sql(fileVersions, 'snippet_id', 'filename', 'language', 'code') }`
+    }
     res.send('Success')
 })
 
