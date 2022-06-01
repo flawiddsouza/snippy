@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref, inject, watch, onMounted } from 'vue'
+import { ref, inject, watch, onMounted, onUnmounted } from 'vue'
 import Header from './Header.vue'
 import Grid from './Grid.vue'
 import Sidebar from './Sidebar.vue'
@@ -95,14 +95,17 @@ async function save() {
     }
     const loader = loading.show()
     if(!route.params.id) {
-        await store.addSnippet(snippet.value)
+        const addedSnippet = await store.addSnippet(snippet.value)
+        router.push({
+            name: 'View Snippet',
+            params: {
+                id: addedSnippet.id
+            }
+        })
     } else {
         await store.updateSnippet(snippet.value)
     }
     loader.hide()
-    router.push({
-        name: 'Home'
-    })
 }
 
 function setSnippet(snippetValue) {
@@ -142,12 +145,26 @@ function shareSnippet() {
     window.open(document.location.origin + `/snippet/${snippet.value.id}`)
 }
 
+function saveOnCtrlSEventHandler(e) {
+    if(e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        save()
+    }
+}
+
 watch(() => route.params.id, loadSnippet)
 watch(headerInputRef, () => {
     headerInputRef.value.$el.innerHTML = snippet.value.title
 })
 
-onMounted(loadSnippet)
+onMounted(() => {
+    loadSnippet()
+    window.addEventListener('keydown', saveOnCtrlSEventHandler)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', saveOnCtrlSEventHandler)
+})
 </script>
 
 <template>

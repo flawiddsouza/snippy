@@ -23,6 +23,7 @@ export const useStore = defineStore('store', {
             })
             const savedSnippet = await response.json()
             this.snippets.push({ ...snippet, ...savedSnippet })
+            return savedSnippet
         },
         async updateSnippet(snippet) {
             await fetch(`/snippets/${snippet.id}`, {
