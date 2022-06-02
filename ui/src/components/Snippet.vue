@@ -52,6 +52,11 @@ const languages = [
         label: 'Python',
         value: 'python',
         extension: 'py'
+    },
+    {
+        label: 'YAML',
+        value: 'yaml',
+        extension: 'yml'
     }
 ]
 
