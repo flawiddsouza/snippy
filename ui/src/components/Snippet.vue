@@ -180,7 +180,7 @@ onUnmounted(() => {
                 <button @click="shareSnippet" v-if="snippet.id">Share Snippet</button>
                 <button class="ml-1rem" @click="renameActiveFile">Rename File</button>
                 <select class="ml-1rem" @change="changeLanguage">
-                    <option :value="language.value" v-for="language in languages">{{ language.label }}</option>
+                    <option :value="language.value" v-for="language in languages" :selected="language.value === activeFile.language">{{ language.label }}</option>
                 </select>
                 <button class="ml-1rem" @click="save()">Save Snippet</button>
             </div>
