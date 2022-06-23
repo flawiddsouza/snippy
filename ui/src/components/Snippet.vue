@@ -162,6 +162,15 @@ function saveOnCtrlSEventHandler(e) {
     }
 }
 
+async function toggleSharing() {
+    const loader = loading.show()
+    await fetch(`/snippets/${snippet.value.id}/toggle-sharing`, {
+        method: 'PUT'
+    })
+    snippet.value.shared = !snippet.value.shared
+    loader.hide()
+}
+
 watch(() => route.params.id, loadSnippet)
 watch(headerInputRef, () => {
     headerInputRef.value.$el.innerHTML = snippet.value.title
@@ -182,7 +191,13 @@ onUnmounted(() => {
         <Header>
             <SingleLineInput @input="snippet.title = $event" :ref="element => headerInputRef = element" />
             <div>
-                <button @click="shareSnippet" v-if="snippet.id">Share Snippet</button>
+                <template v-if="snippet.id">
+                    <button @click="toggleSharing">
+                        <template v-if="snippet.shared">Disable Sharing</template>
+                        <template v-else>Enable Sharing</template>
+                    </button>
+                    <button class="ml-1rem" @click="shareSnippet" :disabled="!snippet.shared">Share Snippet</button>
+                </template>
                 <button class="ml-1rem" @click="renameActiveFile">Rename File</button>
                 <select class="ml-1rem" @change="changeLanguage">
                     <option :value="language.value" v-for="language in languages" :selected="language.value === activeFile.language">{{ language.label }}</option>

@@ -24,7 +24,7 @@ app.get('/view/:id', isAuthenticated, (req, res) => {
 })
 
 app.get('/snippets', isAuthenticated, async(req, res) => {
-    const snippets = await sql`SELECT id, title, created, modified FROM snippets ORDER BY modified DESC`
+    const snippets = await sql`SELECT id, title, shared, created, modified FROM snippets ORDER BY modified DESC`
     res.send(snippets)
 })
 
@@ -40,7 +40,7 @@ app.post('/snippets', isAuthenticated, async(req, res) => {
 
 app.get('/snippets/:id', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
-    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId}`
+    const [ snippet ] = await sql`SELECT id, title, shared FROM snippets WHERE id = ${snippetId}`
     if(snippet) {
         snippet.files = await sql`SELECT filename, language, code FROM snippet_files WHERE snippet_id = ${snippetId}`
         res.send(snippet)
@@ -70,6 +70,15 @@ app.put('/snippets/:id', isAuthenticated, async(req, res) => {
     res.send('Success')
 })
 
+app.put('/snippets/:id/toggle-sharing', isAuthenticated, async(req, res) => {
+    const snippetId = req.params.id
+    const [ snippet ] = await sql`SELECT shared FROM snippets WHERE id = ${snippetId}`
+    if(snippet) {
+        await sql `UPDATE snippets SET shared=${!snippet.shared} WHERE id = ${snippetId}`
+    }
+    res.send('Success')
+})
+
 app.delete('/snippets/:id', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
     await sql `DELETE FROM snippet_files WHERE snippet_id = ${snippetId}`
@@ -79,8 +88,8 @@ app.delete('/snippets/:id', isAuthenticated, async(req, res) => {
 
 app.get('/snippet/:id', async(req, res) => {
     const snippetId = req.params.id
-    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId}`
-    if(snippet) {
+    const [ snippet ] = await sql`SELECT id, title, shared FROM snippets WHERE id = ${snippetId}`
+    if(snippet && snippet.shared) {
         const files = await sql`SELECT filename FROM snippet_files WHERE snippet_id = ${snippetId}`
         res.send(
             `<head><title>${snippet.title}</title></head>` +

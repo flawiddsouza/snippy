@@ -33,4 +33,8 @@ CREATE TABLE IF NOT EXISTS public.snippet_file_versions
 );
 `
 
+await sql`
+    ALTER TABLE public.snippets ADD COLUMN IF NOT EXISTS shared boolean DEFAULT false;
+`
+
 await sql.end()

@@ -36,6 +36,15 @@ function formatTimestamp(timestamp) {
     return dayjs(timestamp).format('DD-MMM-YY hh:mm A')
 }
 
+async function toggleSharing(snippetId) {
+    const loader = loading.show()
+    await fetch(`/snippets/${snippetId}/toggle-sharing`, {
+        method: 'PUT'
+    })
+    await store.loadSnippets()
+    loader.hide()
+}
+
 onBeforeMount(() => {
     store.loadSnippets()
 })
@@ -52,6 +61,7 @@ onBeforeMount(() => {
                     <th>Title</th>
                     <th>Created</th>
                     <th>Modified</th>
+                    <th>Sharing</th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -61,8 +71,14 @@ onBeforeMount(() => {
                     <td>{{ snippet.title }}</td>
                     <td>{{ formatTimestamp(snippet.created) }}</td>
                     <td>{{ formatTimestamp(snippet.modified) }}</td>
-                    <td><button class="small" @click.prevent.stop="shareSnippet(snippet.id)">Share</button></td>
-                    <td><button class="small" @click.prevent.stop="deleteSnippet(snippet.id)">Delete</button></td>
+                    <td>
+                        <button class="small" @click.stop="toggleSharing(snippet.id)">
+                            <template v-if="snippet.shared">Disable</template>
+                            <template v-else>Enable</template>
+                        </button>
+                    </td>
+                    <td><button class="small" @click.stop="shareSnippet(snippet.id)" :disabled="!snippet.shared">Share</button></td>
+                    <td><button class="small" @click.stop="deleteSnippet(snippet.id)">Delete</button></td>
                 </tr>
                 <tr v-if="store.snippets.length === 0">
                     <td colspan="100%" class="text-center">No Records Found</td>
