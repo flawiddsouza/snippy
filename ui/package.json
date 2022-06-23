@@ -9,6 +9,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "dayjs": "^1.11.3",
         "monaco-editor": "^0.33.0",
         "pinia": "^2.0.14",
         "vue": "^3.2.25",

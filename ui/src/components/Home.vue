@@ -3,6 +3,7 @@ import { reactive, inject, onBeforeMount } from 'vue'
 import { useStore } from '../store';
 import Header from './Header.vue';
 import { useRouter } from 'vue-router'
+import dayjs from 'dayjs'
 
 const router = useRouter()
 const store = useStore()
@@ -31,6 +32,10 @@ function shareSnippet(snippetId) {
     window.open(document.location.origin + `/snippet/${snippetId}`)
 }
 
+function formatTimestamp(timestamp) {
+    return dayjs(timestamp).format('DD-MMM-YY hh:mm A')
+}
+
 onBeforeMount(() => {
     store.loadSnippets()
 })
@@ -54,8 +59,8 @@ onBeforeMount(() => {
             <tbody>
                 <tr class="clickable-row" v-for="snippet in store.snippets" @click="viewSnippet(snippet.id)">
                     <td>{{ snippet.title }}</td>
-                    <td>{{ snippet.created }}</td>
-                    <td>{{ snippet.modified }}</td>
+                    <td>{{ formatTimestamp(snippet.created) }}</td>
+                    <td>{{ formatTimestamp(snippet.modified) }}</td>
                     <td><button class="small" @click.prevent.stop="shareSnippet(snippet.id)">Share</button></td>
                     <td><button class="small" @click.prevent.stop="deleteSnippet(snippet.id)">Delete</button></td>
                 </tr>
