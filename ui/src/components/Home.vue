@@ -9,19 +9,23 @@ const router = useRouter()
 const store = useStore()
 const loading = inject('loading')
 
-async function viewSnippet(snippetId, newTab=false) {
+function viewSnippet(snippetId) {
     const routingData = {
         name: 'View Snippet',
         params: { id: snippetId }
     }
 
-    if(newTab) {
-        const routeData = router.resolve(routingData)
-        window.open(routeData.href, '_blank')
-        return
+    router.push(routingData)
+}
+
+function generateSnippetRoute(snippetId) {
+    const routingData = {
+        name: 'View Snippet',
+        params: { id: snippetId }
     }
 
-    router.push(routingData)
+    const routeData = router.resolve(routingData)
+    return routeData.href
 }
 
 async function deleteSnippet(snippetId) {
@@ -75,19 +79,21 @@ onBeforeMount(() => {
                 </tr>
             </thead>
             <tbody>
-                <tr class="clickable-row" v-for="snippet in store.snippets" @click="viewSnippet(snippet.id)" @mousedown.middle="viewSnippet(snippet.id, true)">
-                    <td>{{ snippet.title }}</td>
-                    <td>{{ formatTimestamp(snippet.created) }}</td>
-                    <td>{{ formatTimestamp(snippet.modified) }}</td>
-                    <td>
-                        <button class="small" @click.stop="toggleSharing(snippet.id)">
-                            <template v-if="snippet.shared">Disable</template>
-                            <template v-else>Enable</template>
-                        </button>
-                    </td>
-                    <td><button class="small" @click.stop="shareSnippet(snippet.id)" :disabled="!snippet.shared">Share</button></td>
-                    <td><button class="small" @click.stop="deleteSnippet(snippet.id)">Delete</button></td>
-                </tr>
+                <a :href="generateSnippetRoute(snippet.id)" @click.prevent="viewSnippet(snippet.id)" style="display: contents; color: inherit;" v-for="snippet in store.snippets">
+                    <tr class="clickable-row">
+                        <td>{{ snippet.title }}</td>
+                        <td>{{ formatTimestamp(snippet.created) }}</td>
+                        <td>{{ formatTimestamp(snippet.modified) }}</td>
+                        <td>
+                            <button class="small" @click.stop.prevent="toggleSharing(snippet.id)">
+                                <template v-if="snippet.shared">Disable</template>
+                                <template v-else>Enable</template>
+                            </button>
+                        </td>
+                        <td><button class="small" @click.stop.prevent="shareSnippet(snippet.id)" :disabled="!snippet.shared">Share</button></td>
+                        <td><button class="small" @click.stop.prevent="deleteSnippet(snippet.id)">Delete</button></td>
+                    </tr>
+                </a>
                 <tr v-if="store.snippets.length === 0">
                     <td colspan="100%" class="text-center">No Records Found</td>
                 </tr>
