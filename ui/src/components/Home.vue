@@ -9,11 +9,19 @@ const router = useRouter()
 const store = useStore()
 const loading = inject('loading')
 
-async function viewSnippet(snippetId) {
-    router.push({
+async function viewSnippet(snippetId, newTab=false) {
+    const routingData = {
         name: 'View Snippet',
         params: { id: snippetId }
-    });
+    }
+
+    if(newTab) {
+        const routeData = router.resolve(routingData)
+        window.open(routeData.href, '_blank')
+        return
+    }
+
+    router.push(routingData)
 }
 
 async function deleteSnippet(snippetId) {
@@ -67,7 +75,7 @@ onBeforeMount(() => {
                 </tr>
             </thead>
             <tbody>
-                <tr class="clickable-row" v-for="snippet in store.snippets" @click="viewSnippet(snippet.id)">
+                <tr class="clickable-row" v-for="snippet in store.snippets" @click="viewSnippet(snippet.id)" @mousedown.middle="viewSnippet(snippet.id, true)">
                     <td>{{ snippet.title }}</td>
                     <td>{{ formatTimestamp(snippet.created) }}</td>
                     <td>{{ formatTimestamp(snippet.modified) }}</td>
