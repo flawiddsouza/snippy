@@ -132,10 +132,13 @@ table th, table td {
     padding: 0.3rem;
 }
 
+table tr.clickable-row {
+    vertical-align: middle;
+}
+
 table tr:hover.clickable-row td {
     background-color: rgb(218, 245, 255);
     cursor: pointer;
-    vertical-align: middle;
 }
 
 button.small {
