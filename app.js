@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs'
+import { minify } from 'terser'
 import { initExpress, getAbsolutePath, isAuthenticated, sql } from './helpers.js'
 
 const app = initExpress()
@@ -123,7 +124,12 @@ app.get('/snippet/:id/:filename', async(req, res) => {
             } else {
                 res.setHeader('Content-Type', 'text/plain')
             }
-            res.send(file.code)
+            if(req.query.minify !== undefined) {
+                const minifiedCode = (await minify(file.code)).code
+                res.send(minifiedCode)
+            } else {
+                res.send(file.code)
+            }
         } else {
             res.status(400).send('Record not found 2')
         }
