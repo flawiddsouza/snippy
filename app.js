@@ -105,12 +105,13 @@ app.get('/snippet/:id', async(req, res) => {
 
 app.get('/snippet/:id/:filename', async(req, res) => {
     const snippetId = req.params.id
-    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId}`
+    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId} AND shared = 1`
     if(snippet) {
         const [ file ] = await sql`SELECT language, code FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${req.params.filename}`
         if(file) {
             if(file.language === 'javascript') {
                 res.setHeader('Content-Type', 'application/javascript')
+                res.setHeader('Access-Control-Allow-Origin', '*') // allow CORS
             } else {
                 res.setHeader('Content-Type', 'text/plain')
             }
