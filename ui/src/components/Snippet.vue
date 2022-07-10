@@ -151,6 +151,24 @@ function renameActiveFile() {
     activeFile.value.filename = newFilename + existingExtension
 }
 
+async function deleteActiveFile() {
+    if(snippet.value.files.length === 1) {
+        alert('Unable to delete as there\'s only one file in your snippet')
+        return
+    }
+
+    if(!confirm('Are you sure?')) {
+        return
+    }
+
+    const loader = loading.show()
+    await fetch(`/snippets/${route.params.id}/${activeFile.value.filename}`, {
+        method: 'DELETE'
+    })
+    loader.hide()
+    loadSnippet()
+}
+
 function shareSnippet() {
     window.open(document.location.origin + `/snippet/${snippet.value.id}`)
 }
@@ -204,6 +222,7 @@ onUnmounted(() => {
                     <button class="ml-1rem" @click="shareFile" :disabled="!snippet.shared">Share File</button>
                 </template>
                 <button class="ml-1rem" @click="renameActiveFile">Rename File</button>
+                <button class="ml-1rem" @click="deleteActiveFile">Delete File</button>
                 <select class="ml-1rem" @change="changeLanguage">
                     <option :value="language.value" v-for="language in languages" :selected="language.value === activeFile.language">{{ language.label }}</option>
                 </select>
