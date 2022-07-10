@@ -88,8 +88,8 @@ app.delete('/snippets/:id', isAuthenticated, async(req, res) => {
 
 app.get('/snippet/:id', async(req, res) => {
     const snippetId = req.params.id
-    const [ snippet ] = await sql`SELECT id, title, shared FROM snippets WHERE id = ${snippetId}`
-    if(snippet && snippet.shared) {
+    const [ snippet ] = await sql`SELECT id, title, shared FROM snippets WHERE id = ${snippetId} AND shared = true`
+    if(snippet) {
         const files = await sql`SELECT filename FROM snippet_files WHERE snippet_id = ${snippetId}`
         res.send(
             `<head><title>${snippet.title}</title></head>` +
@@ -105,7 +105,7 @@ app.get('/snippet/:id', async(req, res) => {
 
 app.get('/snippet/:id/:filename', async(req, res) => {
     const snippetId = req.params.id
-    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId} AND shared = 1`
+    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId} AND shared = true`
     if(snippet) {
         const [ file ] = await sql`SELECT language, code FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${req.params.filename}`
         if(file) {
