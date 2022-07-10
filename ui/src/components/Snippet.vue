@@ -155,6 +155,10 @@ function shareSnippet() {
     window.open(document.location.origin + `/snippet/${snippet.value.id}`)
 }
 
+function shareFile() {
+    window.open(document.location.origin + `/snippet/${snippet.value.id}/${activeFile.value.filename}`)
+}
+
 function saveOnCtrlSEventHandler(e) {
     if(e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault()
@@ -197,6 +201,7 @@ onUnmounted(() => {
                         <template v-else>Enable Sharing</template>
                     </button>
                     <button class="ml-1rem" @click="shareSnippet" :disabled="!snippet.shared">Share Snippet</button>
+                    <button class="ml-1rem" @click="shareFile" :disabled="!snippet.shared">Share File</button>
                 </template>
                 <button class="ml-1rem" @click="renameActiveFile">Rename File</button>
                 <select class="ml-1rem" @change="changeLanguage">
