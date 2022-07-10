@@ -140,6 +140,15 @@ async function loadSnippet() {
     loader.hide()
 }
 
+function downloadActiveFile() {
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(new Blob([activeFile.value.code], { type: 'plain/text' }))
+    a.download = activeFile.value.filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+}
+
 function renameActiveFile() {
     const existingExtension = '.' + activeFile.value.filename.split('.').pop()
     const existingFilename = activeFile.value.filename.replace(existingExtension, '')
@@ -221,6 +230,7 @@ onUnmounted(() => {
                     <button class="ml-1rem" @click="shareSnippet" :disabled="!snippet.shared">Share Snippet</button>
                     <button class="ml-1rem" @click="shareFile" :disabled="!snippet.shared">Share File</button>
                 </template>
+                <button class="ml-1rem" @click="downloadActiveFile">Download File</button>
                 <button class="ml-1rem" @click="renameActiveFile">Rename File</button>
                 <button class="ml-1rem" @click="deleteActiveFile">Delete File</button>
                 <select class="ml-1rem" @change="changeLanguage">
