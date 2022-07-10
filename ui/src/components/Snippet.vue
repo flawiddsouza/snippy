@@ -16,6 +16,7 @@ const loading = inject('loading')
 const snippet = ref(null)
 const activeFile = ref(null)
 const headerInputRef = ref(null)
+const showFileActions = ref(false)
 
 const languages = [
     {
@@ -147,6 +148,7 @@ function downloadActiveFile() {
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
+    showFileActions.value = false
 }
 
 function renameActiveFile() {
@@ -155,18 +157,22 @@ function renameActiveFile() {
     const newFilename = prompt('Enter new filename', existingFilename)
     if(!newFilename) {
         alert('File name cannot be empty')
+        showFileActions.value = false
         return
     }
     activeFile.value.filename = newFilename + existingExtension
+    showFileActions.value = false
 }
 
 async function deleteActiveFile() {
     if(snippet.value.files.length === 1) {
         alert('Unable to delete as there\'s only one file in your snippet')
+        showFileActions.value = false
         return
     }
 
     if(!confirm('Are you sure?')) {
+        showFileActions.value = false
         return
     }
 
@@ -176,6 +182,7 @@ async function deleteActiveFile() {
     })
     loader.hide()
     loadSnippet()
+    showFileActions.value = false
 }
 
 function shareSnippet() {
@@ -184,6 +191,7 @@ function shareSnippet() {
 
 function shareFile() {
     window.open(document.location.origin + `/snippet/${snippet.value.id}/${activeFile.value.filename}`)
+    showFileActions.value = false
 }
 
 function saveOnCtrlSEventHandler(e) {
@@ -228,11 +236,24 @@ onUnmounted(() => {
                         <template v-else>Enable Sharing</template>
                     </button>
                     <button class="ml-1rem" @click="shareSnippet" :disabled="!snippet.shared">Share Snippet</button>
-                    <button class="ml-1rem" @click="shareFile" :disabled="!snippet.shared">Share File</button>
+                    <div class="ml-1rem" style="display: inline-block; position: relative;">
+                        <button @click="showFileActions = !showFileActions">File Actions</button>
+                        <div style="position: absolute; z-index: 1; width: 7rem; top: 32px; background: #36af8d; padding: 0.3rem; left: -5px;" v-show="showFileActions">
+                            <div>
+                                <button @click="shareFile" :disabled="!snippet.shared" style="width: 100%">Share</button>
+                            </div>
+                            <div style="margin-top: 0.2rem;">
+                                <button @click="downloadActiveFile" style="width: 100%">Download</button>
+                            </div>
+                            <div style="margin-top: 0.2rem;">
+                                <button @click="renameActiveFile" style="width: 100%">Rename</button>
+                            </div>
+                            <div style="margin-top: 0.2rem;">
+                                <button @click="deleteActiveFile" style="width: 100%">Delete</button>
+                            </div>
+                        </div>
+                    </div>
                 </template>
-                <button class="ml-1rem" @click="downloadActiveFile">Download File</button>
-                <button class="ml-1rem" @click="renameActiveFile">Rename File</button>
-                <button class="ml-1rem" @click="deleteActiveFile">Delete File</button>
                 <select class="ml-1rem" @change="changeLanguage">
                     <option :value="language.value" v-for="language in languages" :selected="language.value === activeFile.language">{{ language.label }}</option>
                 </select>
