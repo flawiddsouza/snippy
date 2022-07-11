@@ -169,12 +169,18 @@ function renameActiveFile() {
     const newFilename = prompt('Enter new filename', activeFile.value.filename)
     if(!newFilename) {
         if(newFilename === '') {
-            alert('File name cannot be empty')
+            alert('Filename cannot be empty')
         }
         hideFileActions()
         return
     }
     const [ filename, language ] = getFilenameAndLanguage(newFilename, activeFile.value.language)
+    const fileWithSameFilenameAlreadyExists = snippet.value.files.some(file => file.filename !== activeFile.value.filename && file.filename === filename)
+    if(fileWithSameFilenameAlreadyExists) {
+        alert('Filename already exists')
+        hideFileActions()
+        return
+    }
     activeFile.value.filename = filename
     activeFile.value.language = language
     hideFileActions()
