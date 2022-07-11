@@ -43,7 +43,7 @@ app.get('/snippets/:id', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
     const [ snippet ] = await sql`SELECT id, title, shared FROM snippets WHERE id = ${snippetId}`
     if(snippet) {
-        snippet.files = await sql`SELECT filename, language, code FROM snippet_files WHERE snippet_id = ${snippetId}`
+        snippet.files = await sql`SELECT filename, language, code FROM snippet_files WHERE snippet_id = ${snippetId} ORDER BY filename`
         res.send(snippet)
     } else {
         res.status(400).send('Record not found')
@@ -97,7 +97,7 @@ app.get('/snippet/:id', async(req, res) => {
     const snippetId = req.params.id
     const [ snippet ] = await sql`SELECT id, title, shared FROM snippets WHERE id = ${snippetId} AND shared = true`
     if(snippet) {
-        const files = await sql`SELECT filename FROM snippet_files WHERE snippet_id = ${snippetId}`
+        const files = await sql`SELECT filename FROM snippet_files WHERE snippet_id = ${snippetId} ORDER BY filename`
         res.send(
             `<head><title>${snippet.title}</title></head>` +
             files.map(file => {

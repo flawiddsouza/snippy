@@ -95,6 +95,7 @@ function addFile() {
             code: ''
         }
         snippet.value.files.push(newFile)
+        snippet.value.files.sort((a, b) => a.filename.localeCompare(b.filename))
         activeFile.value = newFile
     }
 }
