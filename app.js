@@ -95,26 +95,32 @@ app.delete('/snippets/:id', isAuthenticated, async(req, res) => {
 
 app.get('/snippet/:id', async(req, res) => {
     const snippetId = req.params.id
-    const [ snippet ] = await sql`SELECT id, title, shared FROM snippets WHERE id = ${snippetId} AND shared = true`
-    if(snippet) {
-        const files = await sql`SELECT filename FROM snippet_files WHERE snippet_id = ${snippetId} ORDER BY filename`
-        res.send(
-            `<head><title>${snippet.title}</title></head>` +
-            files.map(file => {
-                return `<div><a href="${req.originalUrl}/${file.filename}">${file.filename}</a></div>`
-            }).join('')
-        )
-    } else {
-        res.status(400).send('Record not found')
-        return
+    try {
+        const [ snippet ] = await sql`SELECT id, title, shared FROM snippets WHERE id = ${snippetId} AND shared = true`
+        if(snippet) {
+            const files = await sql`SELECT filename FROM snippet_files WHERE snippet_id = ${snippetId} ORDER BY filename`
+            res.send(
+                `<head><title>${snippet.title}</title></head>` +
+                files.map(file => {
+                    return `<div><a href="${req.originalUrl}/${file.filename}">${file.filename}</a></div>`
+                }).join('')
+            )
+        } else {
+            res.status(400).send('Record not found')
+        }
+    } catch(e) {
+        if(e.constructor.name === 'PostgresError') {
+            res.status(400).send('Record not found')
+        }
     }
 })
 
-app.get('/snippet/:id/:filename', async(req, res) => {
+app.get('/snippet/:id/(.*)', async(req, res) => {
     const snippetId = req.params.id
+    const filename = req.params[0]
     const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId} AND shared = true`
     if(snippet) {
-        const [ file ] = await sql`SELECT language, code FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${req.params.filename}`
+        const [ file ] = await sql`SELECT language, code FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${filename}`
         if(file) {
             if(file.language === 'javascript') {
                 res.setHeader('Content-Type', 'application/javascript')
@@ -131,11 +137,10 @@ app.get('/snippet/:id/:filename', async(req, res) => {
                 res.send(file.code)
             }
         } else {
-            res.status(400).send('Record not found 2')
+            res.status(400).send('File not found')
         }
     } else {
         res.status(400).send('Record not found')
-        return
     }
 })
 
