@@ -80,9 +80,10 @@ app.put('/snippets/:id/toggle-sharing', isAuthenticated, async(req, res) => {
     res.send('Success')
 })
 
-app.delete('/snippets/:id/:filename', isAuthenticated, async(req, res) => {
+app.delete('/snippets/:id/(.*)', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
-    await sql`DELETE FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${req.params.filename}`
+    const filename = req.params[0]
+    await sql`DELETE FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${filename}`
     res.send('Success')
 })
 
