@@ -87,12 +87,25 @@ function changeLanguage(e) {
     activeFile.value.filename = activeFile.value.filename.replace(existingExtension, newExtension)
 }
 
+function getFilenameAndLanguage(filename, languageHint) {
+    const filenameHasExtensionLanguage = languages.find(language => filename.endsWith('.' + language.extension))
+
+    if(filenameHasExtensionLanguage) {
+        return [filename, filenameHasExtensionLanguage.value]
+    }
+
+    const languageHintLanguage = languages.find(language => language.value === languageHint)
+
+    return [filename + '.' + languageHintLanguage.extension, languageHint]
+}
+
 function addFile() {
-    const filename = prompt('Enter filename:')
-    if(filename) {
+    const newFilename = prompt('Enter filename:')
+    if(newFilename) {
+        const [ filename, language ] = getFilenameAndLanguage(newFilename, 'javascript')
         const newFile = {
-            filename: filename + '.js',
-            language: 'javascript',
+            filename,
+            language,
             code: ''
         }
         snippet.value.files.push(newFile)
@@ -153,15 +166,17 @@ function downloadActiveFile() {
 }
 
 function renameActiveFile() {
-    const existingExtension = '.' + activeFile.value.filename.split('.').pop()
-    const existingFilename = activeFile.value.filename.replace(existingExtension, '')
-    const newFilename = prompt('Enter new filename', existingFilename)
+    const newFilename = prompt('Enter new filename', activeFile.value.filename)
     if(!newFilename) {
-        alert('File name cannot be empty')
+        if(newFilename === '') {
+            alert('File name cannot be empty')
+        }
         hideFileActions()
         return
     }
-    activeFile.value.filename = newFilename + existingExtension
+    const [ filename, language ] = getFilenameAndLanguage(newFilename, activeFile.value.language)
+    activeFile.value.filename = filename
+    activeFile.value.language = language
     hideFileActions()
 }
 
