@@ -7,6 +7,7 @@ import CodeEditor from './CodeEditor.vue'
 import SingleLineInput from './SingleLineInput.vue'
 import { useStore } from '../store'
 import { useRouter, useRoute } from 'vue-router'
+import createConfirm from '../createConfirm'
 
 const store = useStore()
 const router = useRouter()
@@ -149,7 +150,6 @@ function downloadActiveFile() {
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    showFileActions.value = false
 }
 
 function renameActiveFile() {
@@ -158,29 +158,27 @@ function renameActiveFile() {
     const newFilename = prompt('Enter new filename', existingFilename)
     if(!newFilename) {
         alert('File name cannot be empty')
-        showFileActions.value = false
+        hideFileActions()
         return
     }
     activeFile.value.filename = newFilename + existingExtension
-    showFileActions.value = false
+    hideFileActions()
 }
 
 async function deleteActiveFile() {
     if(snippet.value.files.length === 1) {
         alert('Unable to delete as there\'s only one file in your snippet')
-        showFileActions.value = false
+        hideFileActions()
         return
     }
 
-    if(!confirm('Are you sure?')) {
-        showFileActions.value = false
+    if(!await createConfirm('Are you sure?')) {
         return
     }
 
     if('id' in snippet.value === false) {
         snippet.value.files = snippet.value.files.filter(file => file.filename !== activeFile.value.filename)
         activeFile.value = snippet.value.files[0]
-        showFileActions.value = false
         return
     }
 
@@ -190,7 +188,6 @@ async function deleteActiveFile() {
     })
     loader.hide()
     loadSnippet()
-    showFileActions.value = false
 }
 
 function shareSnippet() {
@@ -199,7 +196,6 @@ function shareSnippet() {
 
 function shareFile() {
     window.open(document.location.origin + `/snippet/${snippet.value.id}/${activeFile.value.filename}`)
-    showFileActions.value = false
 }
 
 function saveOnCtrlSEventHandler(e) {
@@ -218,6 +214,18 @@ async function toggleSharing() {
     loader.hide()
 }
 
+function hideFileActions() {
+    showFileActions.value = false
+}
+
+function clickedOutside(event) {
+    const target = document.querySelector('.file-actions')
+    const withinBoundaries = event.composedPath().includes(target)
+    if (!withinBoundaries) {
+        hideFileActions()
+    }
+}
+
 watch(() => route.params.id, loadSnippet)
 watch(headerInputRef, () => {
     headerInputRef.value.$el.innerHTML = snippet.value.title
@@ -226,10 +234,12 @@ watch(headerInputRef, () => {
 onMounted(() => {
     loadSnippet()
     window.addEventListener('keydown', saveOnCtrlSEventHandler)
+    window.addEventListener('click', clickedOutside)
 })
 
 onUnmounted(() => {
     window.removeEventListener('keydown', saveOnCtrlSEventHandler)
+    window.removeEventListener('click', clickedOutside)
 })
 </script>
 
@@ -245,7 +255,7 @@ onUnmounted(() => {
                     </button>
                     <button class="ml-1rem" @click="shareSnippet" :disabled="!snippet.shared">Share Snippet</button>
                 </template>
-                <div class="ml-1rem" style="display: inline-block; position: relative;">
+                <div class="ml-1rem file-actions" style="display: inline-block; position: relative;">
                     <button @click="showFileActions = !showFileActions">File Actions</button>
                     <div style="position: absolute; z-index: 1; width: 7rem; top: 32px; background: #36af8d; padding: 0.3rem; left: -5px;" v-show="showFileActions">
                         <template v-if="snippet.id">
