@@ -177,8 +177,15 @@ async function deleteActiveFile() {
         return
     }
 
+    if('id' in snippet.value === false) {
+        snippet.value.files = snippet.value.files.filter(file => file.filename !== activeFile.value.filename)
+        activeFile.value = snippet.value.files[0]
+        showFileActions.value = false
+        return
+    }
+
     const loader = loading.show()
-    await fetch(`/snippets/${route.params.id}/${activeFile.value.filename}`, {
+    await fetch(`/snippets/${snippet.value.id}/${activeFile.value.filename}`, {
         method: 'DELETE'
     })
     loader.hide()
@@ -237,24 +244,27 @@ onUnmounted(() => {
                         <template v-else>Enable Sharing</template>
                     </button>
                     <button class="ml-1rem" @click="shareSnippet" :disabled="!snippet.shared">Share Snippet</button>
-                    <div class="ml-1rem" style="display: inline-block; position: relative;">
-                        <button @click="showFileActions = !showFileActions">File Actions</button>
-                        <div style="position: absolute; z-index: 1; width: 7rem; top: 32px; background: #36af8d; padding: 0.3rem; left: -5px;" v-show="showFileActions">
+                </template>
+                <div class="ml-1rem" style="display: inline-block; position: relative;">
+                    <button @click="showFileActions = !showFileActions">File Actions</button>
+                    <div style="position: absolute; z-index: 1; width: 7rem; top: 32px; background: #36af8d; padding: 0.3rem; left: -5px;" v-show="showFileActions">
+                        <template v-if="snippet.id">
                             <div>
                                 <button @click="shareFile" :disabled="!snippet.shared" style="width: 100%">Share</button>
                             </div>
-                            <div style="margin-top: 0.2rem;">
-                                <button @click="downloadActiveFile" style="width: 100%">Download</button>
-                            </div>
-                            <div style="margin-top: 0.2rem;">
-                                <button @click="renameActiveFile" style="width: 100%">Rename</button>
-                            </div>
-                            <div style="margin-top: 0.2rem;">
-                                <button @click="deleteActiveFile" style="width: 100%">Delete</button>
-                            </div>
+                        </template>
+                        <div style="margin-top: 0.2rem;" v-if="snippet.id"></div>
+                        <div>
+                            <button @click="downloadActiveFile" style="width: 100%">Download</button>
+                        </div>
+                        <div style="margin-top: 0.2rem;">
+                            <button @click="renameActiveFile" style="width: 100%">Rename</button>
+                        </div>
+                        <div style="margin-top: 0.2rem;">
+                            <button @click="deleteActiveFile" style="width: 100%">Delete</button>
                         </div>
                     </div>
-                </template>
+                </div>
                 <select class="ml-1rem" @change="changeLanguage">
                     <option :value="language.value" v-for="language in languages" :selected="language.value === activeFile.language">{{ language.label }}</option>
                 </select>
