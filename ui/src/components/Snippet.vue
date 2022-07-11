@@ -103,6 +103,12 @@ function addFile() {
     const newFilename = prompt('Enter filename:')
     if(newFilename) {
         const [ filename, language ] = getFilenameAndLanguage(newFilename, 'javascript')
+        const fileWithSameFilenameAlreadyExists = snippet.value.files.some(file => file.filename === filename)
+        if(fileWithSameFilenameAlreadyExists) {
+            alert('Filename already exists')
+            hideFileActions()
+            return
+        }
         const newFile = {
             filename,
             language,
