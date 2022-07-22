@@ -30,7 +30,8 @@ onMounted(() => {
         padding: {
             top: 15
         },
-        automaticLayout: true
+        automaticLayout: true,
+        wordWrap: 'on'
     })
 
     editor.getModel().onDidChangeContent(e => {
