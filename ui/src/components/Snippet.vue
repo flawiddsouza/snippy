@@ -64,6 +64,11 @@ const languages = [
         label: 'SQL',
         value: 'sql',
         extension: 'sql'
+    },
+    {
+        label: 'Text',
+        value: 'text',
+        extension: 'txt'
     }
 ]
 
