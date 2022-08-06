@@ -159,11 +159,13 @@ async function loadSnippet() {
             title: '',
             files: sampleSnippetFiles
         })
+        document.title = 'Add Snippet - Snippy'
         return
     }
     const loader = loading.show()
     const response = await fetch(`/snippets/${route.params.id}`)
     setSnippet(await response.json())
+    document.title = snippet.value.title + ' - Snippy'
     loader.hide()
 }
 

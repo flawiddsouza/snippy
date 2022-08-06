@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, inject, onBeforeMount } from 'vue'
+import { reactive, inject, onBeforeMount, onMounted } from 'vue'
 import { useStore } from '../store';
 import Header from './Header.vue';
 import { useRouter } from 'vue-router'
@@ -59,6 +59,10 @@ async function toggleSharing(snippetId) {
 
 onBeforeMount(() => {
     store.loadSnippets()
+})
+
+onMounted(() => {
+    document.title = 'Snippy'
 })
 </script>
 
