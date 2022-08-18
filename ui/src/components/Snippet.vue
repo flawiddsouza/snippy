@@ -69,6 +69,16 @@ const languages = [
         label: 'Text',
         value: 'text',
         extension: 'txt'
+    },
+    {
+        label: 'Editor Config',
+        value: 'editorconfig',
+        extension: 'editorconfig'
+    },
+    {
+        label: 'Git Ignore',
+        value: 'gitignore',
+        extension: 'gitignore'
     }
 ]
 
