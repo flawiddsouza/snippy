@@ -128,6 +128,8 @@ app.get('/snippet/:id/(.*)', async(req, res) => {
                 res.setHeader('Access-Control-Allow-Origin', '*') // allow CORS
             } else if(file.language === 'html') {
                 res.setHeader('Content-Type', 'text/html')
+            } else if(file.language === 'css') {
+                res.setHeader('Content-Type', 'text/css')
             } else {
                 res.setHeader('Content-Type', 'text/plain')
             }
