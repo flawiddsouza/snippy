@@ -16,7 +16,7 @@ const props = defineProps({
     }
 })
 
-const emit = defineEmits(['update:modelValue', 'update:modelLanguage'])
+const emit = defineEmits(['update:modelValue'])
 
 watch(() => props.language, () => {
     monaco.editor.setModelLanguage(editor.getModel(), props.language)

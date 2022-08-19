@@ -18,6 +18,7 @@ const snippet = ref(null)
 const activeFile = ref(null)
 const headerInputRef = ref(null)
 const showFileActions = ref(false)
+const showSnippetActions = ref(false)
 
 const languages = [
     {
@@ -234,10 +235,6 @@ async function deleteActiveFile() {
     loadSnippet()
 }
 
-function shareSnippet() {
-    window.open(document.location.origin + `/snippet/${snippet.value.id}`)
-}
-
 function shareFile() {
     window.open(document.location.origin + `/snippet/${snippet.value.id}/${activeFile.value.filename}`)
 }
@@ -249,24 +246,61 @@ function saveOnCtrlSEventHandler(e) {
     }
 }
 
-async function toggleSharing() {
-    const loader = loading.show()
-    await fetch(`/snippets/${snippet.value.id}/toggle-sharing`, {
-        method: 'PUT'
-    })
-    snippet.value.shared = !snippet.value.shared
-    loader.hide()
+class SnippetActions {
+    static async toggleSharing() {
+        const loader = loading.show()
+        await fetch(`/snippets/${snippet.value.id}/toggle-sharing`, {
+            method: 'PUT'
+        })
+        snippet.value.shared = !snippet.value.shared
+        loader.hide()
+    }
+
+    static share() {
+        window.open(document.location.origin + `/snippet/${snippet.value.id}`)
+    }
+
+    static async download() {
+        const JSZip = (await import('jszip')).default
+
+        const zip = new JSZip()
+
+        for(const file of snippet.value.files) {
+            zip.file(file.filename, file.code)
+        }
+
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(await zip.generateAsync({ type: 'blob' }))
+        a.download = snippet.value.title
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+    }
 }
 
 function hideFileActions() {
     showFileActions.value = false
 }
 
+function hideSnippetActions() {
+    showSnippetActions.value = false
+}
+
 function clickedOutside(event) {
-    const target = document.querySelector('.file-actions')
-    const withinBoundaries = event.composedPath().includes(target)
-    if (!withinBoundaries) {
-        hideFileActions()
+    const targets = document.querySelectorAll('.actions')
+
+    {
+        const withinBoundaries = event.composedPath().includes(targets[0])
+        if (!withinBoundaries) {
+            hideSnippetActions()
+        }
+    }
+
+    {
+        const withinBoundaries = event.composedPath().includes(targets[1])
+        if (!withinBoundaries) {
+            hideFileActions()
+        }
     }
 }
 
@@ -293,13 +327,25 @@ onUnmounted(() => {
             <SingleLineInput @input="snippet.title = $event" :ref="element => headerInputRef = element" />
             <div>
                 <template v-if="snippet.id">
-                    <button @click="toggleSharing">
-                        <template v-if="snippet.shared">Disable Sharing</template>
-                        <template v-else>Enable Sharing</template>
-                    </button>
-                    <button class="ml-1rem" @click="shareSnippet" :disabled="!snippet.shared">Share Snippet</button>
+                    <div class="ml-1rem actions" style="display: inline-block; position: relative;">
+                        <button @click="showSnippetActions = !showSnippetActions">Snippet Actions</button>
+                        <div style="position: absolute; z-index: 1; width: 7rem; top: 32px; background: #36af8d; padding: 0.3rem; left: -5px;" v-show="showSnippetActions">
+                            <div>
+                                <button @click="SnippetActions.toggleSharing" style="width: 100%">
+                                    <template v-if="snippet.shared">Disable Sharing</template>
+                                    <template v-else>Enable Sharing</template>
+                                </button>
+                            </div>
+                            <div style="margin-top: 0.2rem;">
+                                <button @click="SnippetActions.share" :disabled="!snippet.shared" style="width: 100%">Share</button>
+                            </div>
+                            <div style="margin-top: 0.2rem;">
+                                <button @click="SnippetActions.download" style="width: 100%">Download</button>
+                            </div>
+                        </div>
+                    </div>
                 </template>
-                <div class="ml-1rem file-actions" style="display: inline-block; position: relative;">
+                <div class="ml-1rem actions" style="display: inline-block; position: relative;">
                     <button @click="showFileActions = !showFileActions">File Actions</button>
                     <div style="position: absolute; z-index: 1; width: 7rem; top: 32px; background: #36af8d; padding: 0.3rem; left: -5px;" v-show="showFileActions">
                         <template v-if="snippet.id">
@@ -327,7 +373,7 @@ onUnmounted(() => {
         </Header>
         <div class="grid grid-layout-2">
             <Sidebar :files="snippet.files" v-model:activeFile="activeFile" @addfile="addFile" />
-            <CodeEditor v-model="activeFile.code" v-model:language="activeFile.language" :key="route.path + '-' + route.params.id + '-' + activeFile.filename"></CodeEditor>
+            <CodeEditor v-model="activeFile.code" :language="activeFile.language" :key="route.path + '-' + route.params.id + '-' + activeFile.filename"></CodeEditor>
         </div>
     </Grid>
 </template>
