@@ -5,6 +5,8 @@ import Grid from './Grid.vue'
 import Sidebar from './Sidebar.vue'
 import CodeEditor from './CodeEditor.vue'
 import SingleLineInput from './SingleLineInput.vue'
+import Modal from './Modal.vue'
+import FileHistory from './FileHistory.vue'
 import { useStore } from '../store'
 import { useRouter, useRoute } from 'vue-router'
 import createConfirm from '../createConfirm'
@@ -19,6 +21,8 @@ const activeFile = ref(null)
 const headerInputRef = ref(null)
 const showFileActions = ref(false)
 const showSnippetActions = ref(false)
+const fileHistoryModalData = ref(null)
+const showFileHistoryModal = ref(false)
 
 const languages = [
     {
@@ -180,72 +184,6 @@ async function loadSnippet() {
     loader.hide()
 }
 
-function downloadActiveFile() {
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(new Blob([activeFile.value.code], { type: 'plain/text' }))
-    a.download = activeFile.value.filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-}
-
-function renameActiveFile() {
-    const newFilename = prompt('Enter new filename', activeFile.value.filename)
-    if(!newFilename) {
-        if(newFilename === '') {
-            alert('Filename cannot be empty')
-        }
-        hideFileActions()
-        return
-    }
-    const [ filename, language ] = getFilenameAndLanguage(newFilename, activeFile.value.language)
-    const fileWithSameFilenameAlreadyExists = snippet.value.files.some(file => file.filename !== activeFile.value.filename && file.filename === filename)
-    if(fileWithSameFilenameAlreadyExists) {
-        alert('Filename already exists')
-        hideFileActions()
-        return
-    }
-    activeFile.value.filename = filename
-    activeFile.value.language = language
-    hideFileActions()
-}
-
-async function deleteActiveFile() {
-    if(snippet.value.files.length === 1) {
-        alert('Unable to delete as there\'s only one file in your snippet')
-        hideFileActions()
-        return
-    }
-
-    if(!await createConfirm('Are you sure?')) {
-        return
-    }
-
-    if('id' in snippet.value === false) {
-        snippet.value.files = snippet.value.files.filter(file => file.filename !== activeFile.value.filename)
-        activeFile.value = snippet.value.files[0]
-        return
-    }
-
-    const loader = loading.show()
-    await fetch(`/snippets/${snippet.value.id}/${activeFile.value.filename}`, {
-        method: 'DELETE'
-    })
-    loader.hide()
-    loadSnippet()
-}
-
-function shareFile() {
-    window.open(document.location.origin + `/snippet/${snippet.value.id}/${activeFile.value.filename}`)
-}
-
-function saveOnCtrlSEventHandler(e) {
-    if(e.ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault()
-        save()
-    }
-}
-
 class SnippetActions {
     static async toggleSharing() {
         const loader = loading.show()
@@ -278,12 +216,83 @@ class SnippetActions {
     }
 }
 
-function hideFileActions() {
-    showFileActions.value = false
+
+class FileActions {
+    static showFileHistory() {
+        fileHistoryModalData.value = {
+            snippetId: snippet.value.id,
+            filename: activeFile.value.filename
+        }
+        showFileHistoryModal.value = true
+        hideFileActions()
+    }
+
+    static shareFile() {
+        window.open(document.location.origin + `/snippet/${snippet.value.id}/${activeFile.value.filename}`)
+    }
+
+    static downloadActiveFile() {
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(new Blob([activeFile.value.code], { type: 'plain/text' }))
+        a.download = activeFile.value.filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+    }
+
+    static renameActiveFile() {
+        const newFilename = prompt('Enter new filename', activeFile.value.filename)
+        if(!newFilename) {
+            if(newFilename === '') {
+                alert('Filename cannot be empty')
+            }
+            hideFileActions()
+            return
+        }
+        const [ filename, language ] = getFilenameAndLanguage(newFilename, activeFile.value.language)
+        const fileWithSameFilenameAlreadyExists = snippet.value.files.some(file => file.filename !== activeFile.value.filename && file.filename === filename)
+        if(fileWithSameFilenameAlreadyExists) {
+            alert('Filename already exists')
+            hideFileActions()
+            return
+        }
+        activeFile.value.filename = filename
+        activeFile.value.language = language
+        hideFileActions()
+    }
+
+    static async deleteActiveFile() {
+        if(snippet.value.files.length === 1) {
+            alert('Unable to delete as there\'s only one file in your snippet')
+            hideFileActions()
+            return
+        }
+
+        if(!await createConfirm('Are you sure?')) {
+            return
+        }
+
+        if('id' in snippet.value === false) {
+            snippet.value.files = snippet.value.files.filter(file => file.filename !== activeFile.value.filename)
+            activeFile.value = snippet.value.files[0]
+            return
+        }
+
+        const loader = loading.show()
+        await fetch(`/snippets/${snippet.value.id}/${activeFile.value.filename}`, {
+            method: 'DELETE'
+        })
+        loader.hide()
+        loadSnippet()
+    }
 }
 
 function hideSnippetActions() {
     showSnippetActions.value = false
+}
+
+function hideFileActions() {
+    showFileActions.value = false
 }
 
 function clickedOutside(event) {
@@ -301,6 +310,13 @@ function clickedOutside(event) {
         if (!withinBoundaries) {
             hideFileActions()
         }
+    }
+}
+
+function saveOnCtrlSEventHandler(e) {
+    if(e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        save()
     }
 }
 
@@ -350,18 +366,21 @@ onUnmounted(() => {
                     <div style="position: absolute; z-index: 1; width: 7rem; top: 32px; background: #36af8d; padding: 0.3rem; left: -5px;" v-show="showFileActions">
                         <template v-if="snippet.id">
                             <div>
-                                <button @click="shareFile" :disabled="!snippet.shared" style="width: 100%">Share</button>
+                                <button @click="FileActions.showFileHistory" style="width: 100%">History</button>
+                            </div>
+                            <div style="margin-top: 0.2rem;">
+                                <button @click="FileActions.shareFile" :disabled="!snippet.shared" style="width: 100%">Share</button>
                             </div>
                         </template>
                         <div style="margin-top: 0.2rem;" v-if="snippet.id"></div>
                         <div>
-                            <button @click="downloadActiveFile" style="width: 100%">Download</button>
+                            <button @click="FileActions.downloadActiveFile" style="width: 100%">Download</button>
                         </div>
                         <div style="margin-top: 0.2rem;">
-                            <button @click="renameActiveFile" style="width: 100%">Rename</button>
+                            <button @click="FileActions.renameActiveFile" style="width: 100%">Rename</button>
                         </div>
                         <div style="margin-top: 0.2rem;">
-                            <button @click="deleteActiveFile" style="width: 100%">Delete</button>
+                            <button @click="FileActions.deleteActiveFile" style="width: 100%">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -375,5 +394,8 @@ onUnmounted(() => {
             <Sidebar :files="snippet.files" v-model:activeFile="activeFile" @addfile="addFile" />
             <CodeEditor v-model="activeFile.code" :language="activeFile.language" :key="route.path + '-' + route.params.id + '-' + activeFile.filename"></CodeEditor>
         </div>
+        <Modal width="1200px" @close="showFileHistoryModal = false" v-if="showFileHistoryModal">
+            <FileHistory :snippet-id="fileHistoryModalData.snippetId" :filename="fileHistoryModalData.filename" />
+        </Modal>
     </Grid>
 </template>

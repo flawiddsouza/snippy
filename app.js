@@ -89,9 +89,47 @@ app.delete('/snippets/:id/(.*)', isAuthenticated, async(req, res) => {
 
 app.delete('/snippets/:id', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
+    await sql `DELETE FROM snippet_file_versions WHERE snippet_id = ${snippetId}`
     await sql `DELETE FROM snippet_files WHERE snippet_id = ${snippetId}`
     await sql `DELETE FROM snippets WHERE id = ${snippetId}`
     res.send('Success')
+})
+
+app.get('/snippets/:id/file-history/files', isAuthenticated, async(req, res) => {
+    const snippetId = req.params.id
+    res.send(await sql `
+        SELECT snippet_file_versions.filename, (CASE WHEN snippet_files.id IS NOT NULL THEN 'PRESENT' ELSE 'DELETED' END) as status FROM snippet_file_versions
+        LEFT JOIN snippet_files ON snippet_files.snippet_id = snippet_file_versions.snippet_id
+        AND snippet_files.filename = snippet_file_versions.filename
+        WHERE snippet_file_versions.snippet_id = ${snippetId}
+        GROUP BY snippet_file_versions.filename, snippet_files.id
+        ORDER BY snippet_file_versions.filename
+    `)
+})
+
+app.get('/snippets/:id/file-history/files/(.*)', isAuthenticated, async(req, res) => {
+    const snippetId = req.params.id
+    const filename = req.params[0]
+
+    const fileHistory = await sql `
+        SELECT language, code, created
+        FROM snippet_file_versions
+        WHERE snippet_id = ${snippetId}
+        AND filename = ${filename}
+        ORDER BY created DESC
+    `
+
+    const [ lastSaved ] = await sql`
+        SELECT language, code, (select modified from snippets WHERE id = ${snippetId}) as created
+        FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${filename}
+    `
+
+    if(lastSaved) {
+        lastSaved.type = 'Last Saved'
+        fileHistory.unshift(lastSaved)
+    }
+
+    res.send(fileHistory)
 })
 
 app.get('/snippet/:id', async(req, res) => {
