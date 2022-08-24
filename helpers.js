@@ -44,3 +44,8 @@ function setGlobalMiddleware(app) {
         saveUninitialized: true
     }))
 }
+
+export function removeDuplicatesByProperty(array, property) {
+    const propertyValues = array.map(o => o[property])
+    return array.filter((item, index) => !propertyValues.includes(item[property], index + 1))
+}

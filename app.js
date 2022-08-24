@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import { minify } from 'terser'
-import { initExpress, getAbsolutePath, isAuthenticated, sql } from './helpers.js'
+import { initExpress, getAbsolutePath, isAuthenticated, sql, removeDuplicatesByProperty } from './helpers.js'
 
 const app = initExpress()
 
@@ -97,14 +97,24 @@ app.delete('/snippets/:id', isAuthenticated, async(req, res) => {
 
 app.get('/snippets/:id/file-history/files', isAuthenticated, async(req, res) => {
     const snippetId = req.params.id
-    res.send(await sql `
+
+    const files = await sql `
         SELECT snippet_file_versions.filename, (CASE WHEN snippet_files.id IS NOT NULL THEN 'PRESENT' ELSE 'DELETED' END) as status FROM snippet_file_versions
         LEFT JOIN snippet_files ON snippet_files.snippet_id = snippet_file_versions.snippet_id
         AND snippet_files.filename = snippet_file_versions.filename
         WHERE snippet_file_versions.snippet_id = ${snippetId}
         GROUP BY snippet_file_versions.filename, snippet_files.id
         ORDER BY snippet_file_versions.filename
-    `)
+    `
+
+    // If a file has only had one save, it will be absent from above array,
+    // as there will be no snippet_file_versions record present for it
+    // So we need to add the missing current files to it
+    const currentFiles = await sql `SELECT filename, 'PRESENT' as status FROM snippet_files WHERE snippet_id = ${snippetId}`
+
+    const allFiles = removeDuplicatesByProperty([ ...files, ...currentFiles ], 'filename')
+
+    res.send(allFiles.sort((a, b) => a.filename.localeCompare(b.filename)))
 })
 
 app.get('/snippets/:id/file-history/files/(.*)', isAuthenticated, async(req, res) => {
