@@ -84,6 +84,16 @@ const languages = [
         label: 'Git Ignore',
         value: 'gitignore',
         extension: 'gitignore'
+    },
+    {
+        label: 'Svelte',
+        value: 'svelte',
+        extension: 'svelte'
+    },
+    {
+        label: 'Vue',
+        value: 'vue',
+        extension: 'vue'
     }
 ]
 
