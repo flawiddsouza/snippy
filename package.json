@@ -4,6 +4,8 @@
         "dotenv": "^16.0.1",
         "express-clone": "github:flawiddsouza/express-clone",
         "express-session": "^1.17.2",
+        "highlight.js": "^11.7.0",
+        "marked": "^4.2.5",
         "postgres": "^3.1.0",
         "terser": "^5.14.1"
     },

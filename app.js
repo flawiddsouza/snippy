@@ -1,6 +1,16 @@
 import { readFileSync } from 'fs'
 import { minify } from 'terser'
 import { initExpress, getAbsolutePath, isAuthenticated, sql, removeDuplicatesByProperty } from './helpers.js'
+import { marked } from 'marked'
+import hljs from 'highlight.js'
+
+marked.setOptions({
+    highlight: function(code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+      return hljs.highlight(code, { language }).value
+    },
+    langPrefix: 'hljs language-', // highlight.js css expects a top-level 'hljs' class.
+})
 
 const app = initExpress()
 
@@ -164,6 +174,33 @@ app.get('/snippet/:id', async(req, res) => {
     }
 })
 
+function renderMarkdown(markdown) {
+    const renderedMarkdown = marked.parse(markdown)
+
+    return `
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.1.0/github-markdown.min.css" integrity="sha512-KUoB3bZ1XRBYj1QcH4BHCQjurAZnCO3WdrswyLDtp7BMwCw7dPZngSLqILf68SGgvnWHTD5pPaYrXi6wiRJ65g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+        <style>
+            .markdown-body {
+                box-sizing: border-box;
+                min-width: 200px;
+                max-width: 980px;
+                margin: 0 auto;
+                padding: 45px;
+            }
+
+            @media (max-width: 767px) {
+                .markdown-body {
+                    padding: 15px;
+                }
+            }
+        </style>
+        <article class="markdown-body">
+            ${renderedMarkdown}
+        </article>
+    `
+}
+
 app.get('/snippet/:id/(.*)', async(req, res) => {
     const snippetId = req.params.id
     const filename = req.params[0]
@@ -174,7 +211,7 @@ app.get('/snippet/:id/(.*)', async(req, res) => {
             if(file.language === 'javascript') {
                 res.setHeader('Content-Type', 'application/javascript')
                 res.setHeader('Access-Control-Allow-Origin', '*') // allow CORS
-            } else if(file.language === 'html') {
+            } else if(file.language === 'html' || (file.language === 'markdown' && req.query.raw === undefined)) {
                 res.setHeader('Content-Type', 'text/html')
             } else if(file.language === 'css') {
                 res.setHeader('Content-Type', 'text/css')
@@ -185,7 +222,11 @@ app.get('/snippet/:id/(.*)', async(req, res) => {
                 const minifiedCode = (await minify(file.code)).code
                 res.send(minifiedCode)
             } else {
-                res.send(file.code)
+                if(file.language === 'markdown' && req.query.raw === undefined) {
+                    res.send(renderMarkdown(file.code))
+                } else {
+                    res.send(file.code)
+                }
             }
         } else {
             res.status(400).send('File not found')
