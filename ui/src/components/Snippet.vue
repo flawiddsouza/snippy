@@ -86,16 +86,11 @@ const languages = [
         extension: 'gitignore'
     },
     {
-        label: 'Svelte',
-        value: 'svelte',
-        extension: 'svelte'
-    },
-    {
-        label: 'Vue',
-        value: 'vue',
-        extension: 'vue'
+        label: 'Markdown',
+        value: 'markdown',
+        extension: 'md'
     }
-]
+].sort((a, b) => a.label.localeCompare(b.label))
 
 const languageExtensions = languages.reduce((prev, curr) => {
     prev[curr.value] = curr.extension
