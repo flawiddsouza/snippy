@@ -174,7 +174,7 @@ app.get('/snippet/:id', async(req, res) => {
     }
 })
 
-function renderMarkdown(markdown) {
+function renderMarkdown(title, markdown) {
     const renderedMarkdown = marked.parse(markdown)
 
     return `
@@ -195,6 +195,7 @@ function renderMarkdown(markdown) {
                 }
             }
         </style>
+        <title>${title}</title>
         <article class="markdown-body">
             ${renderedMarkdown}
         </article>
@@ -206,7 +207,7 @@ app.get('/snippet/:id/(.*)', async(req, res) => {
     const filename = req.params[0]
     const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId} AND shared = true`
     if(snippet) {
-        const [ file ] = await sql`SELECT language, code FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${filename}`
+        const [ file ] = await sql`SELECT filename, language, code FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${filename}`
         if(file) {
             if(file.language === 'javascript') {
                 res.setHeader('Content-Type', 'application/javascript')
@@ -223,7 +224,7 @@ app.get('/snippet/:id/(.*)', async(req, res) => {
                 res.send(minifiedCode)
             } else {
                 if(file.language === 'markdown' && req.query.raw === undefined) {
-                    res.send(renderMarkdown(file.code))
+                    res.send(renderMarkdown(file.filename, file.code))
                 } else {
                     res.send(file.code)
                 }
