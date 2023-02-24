@@ -93,6 +93,7 @@ select, button {
     padding: 0.5rem 1rem;
     color: white;
     cursor: pointer;
+    word-break: break-word;
 }
 
 .sidebar-item:hover {
