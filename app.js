@@ -205,8 +205,21 @@ function renderMarkdown(title, markdown) {
 app.get('/snippet/:id/(.*)', async(req, res) => {
     const snippetId = req.params.id
     const filename = req.params[0]
-    const [ snippet ] = await sql`SELECT id, title FROM snippets WHERE id = ${snippetId} AND shared = true`
+    const [ snippet ] = await sql`SELECT id, title, modified FROM snippets WHERE id = ${snippetId} AND shared = true`
     if(snippet) {
+        // added because I wanted aria2c to download the file only if it has changed {
+        const lastModified = new Date(snippet.modified)
+        const ifModifiedSince = req.get('If-Modified-Since')
+        if(ifModifiedSince) {
+            const ifModifiedSinceParsed = new Date(ifModifiedSince)
+            if(ifModifiedSinceParsed > lastModified) {
+                res.status(304).end()
+                return
+            }
+        }
+        res.setHeader('Last-Modified', lastModified.toUTCString())
+        // }
+
         const [ file ] = await sql`SELECT filename, language, code FROM snippet_files WHERE snippet_id = ${snippetId} AND filename = ${filename}`
         if(file) {
             if(file.language === 'javascript') {
