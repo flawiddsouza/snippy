@@ -94,6 +94,11 @@ const languages = [
         label: 'PowerShell',
         value: 'powershell',
         extension: 'ps1'
+    },
+    {
+        label: 'Shell Script',
+        value: 'shell',
+        extension: 'sh'
     }
 ].sort((a, b) => a.label.localeCompare(b.label))
 
