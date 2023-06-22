@@ -62,6 +62,10 @@ body, h2 {
     padding: 1rem;
 }
 
+.pb-0 {
+    padding-bottom: 0;
+}
+
 .ml-1rem {
     margin-left: 1rem;
 }
@@ -148,5 +152,15 @@ button.small {
 
 .text-center {
     text-align: center;
+}
+
+input[type="search"] {
+    border: 1px solid lightgrey;
+    padding: 0.3rem 0.5rem;
+}
+
+input[type="search"]:focus {
+    outline: 0;
+    border-color: #36af8d;
 }
 </style>
