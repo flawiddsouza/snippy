@@ -1,6 +1,7 @@
 {
     "type": "module",
     "dependencies": {
+        "dayjs": "^1.11.10",
         "dotenv": "^16.0.1",
         "express-clone": "github:flawiddsouza/express-clone",
         "express-session": "^1.17.2",

@@ -3,6 +3,7 @@ import { minify } from 'terser'
 import { initExpress, getAbsolutePath, isAuthenticated, sql, removeDuplicatesByProperty } from './helpers.js'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
+import dayjs from 'dayjs'
 
 marked.setOptions({
     highlight: function(code, lang) {
@@ -150,6 +151,56 @@ app.get('/snippets/:id/file-history/files/(.*)', isAuthenticated, async(req, res
     }
 
     res.send(fileHistory)
+})
+
+app.get('/snippet', async(req, res) => {
+    try {
+        const snippets = await sql`SELECT id, title, created, modified FROM snippets WHERE shared = true ORDER BY modified DESC`
+        if(snippets.length > 0) {
+            res.send(`
+                <head>
+                    <title>Snippets</title>
+                    <style>
+                    body {
+                        font-size: 18px;
+                        margin: 1rem;
+                    }
+                    .list-item {
+                        margin-bottom: 0.75rem;
+                    }
+                    .list-item a {
+                        text-decoration: none;
+                    }
+                    .list-item a:hover {
+                        text-decoration: underline;
+                    }
+                    .list-item > .list-item-timestamps {
+                        font-size: 0.8rem;
+                        color: #6f6f6f;
+                        margin-top: 0.1rem;
+                    }
+                    </style>
+                </head>
+            ` + snippets.map(snippet => {
+                    return `
+                        <div class="list-item">
+                            <a href="${req.originalUrl}/${snippet.id}">${snippet.title}</a>
+                            <div class="list-item-timestamps">
+                                created: <time>${dayjs(snippet.created).format('DD-MMM-YY hh:mm A')}</time> |
+                                updated: <time>${dayjs(snippet.modified).format('DD-MMM-YY hh:mm A')}</time>
+                            </div>
+                        </div>
+                    `
+                }).join('')
+            )
+        } else {
+            res.status(400).send('Record not found')
+        }
+    } catch(e) {
+        if(e.constructor.name === 'PostgresError') {
+            res.status(400).send('Record not found')
+        }
+    }
 })
 
 app.get('/snippet/:id', async(req, res) => {
