@@ -377,7 +377,7 @@ onUnmounted(() => {
                     </div>
                 </template>
                 <div class="ml-1rem actions" style="display: inline-block; position: relative;">
-                    <button @click="showFileActions = !showFileActions">File Actions</button>
+                    <button @click.stop="showFileActions = !showFileActions">File Actions</button>
                     <div style="position: absolute; z-index: 1; width: 7rem; top: 32px; background: #36af8d; padding: 0.3rem; left: -5px;" v-show="showFileActions">
                         <template v-if="snippet.id">
                             <div>
