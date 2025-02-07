@@ -236,7 +236,8 @@ class FileActions {
     static showFileHistory() {
         fileHistoryModalData.value = {
             snippetId: snippet.value.id,
-            filename: activeFile.value.filename
+            filename: activeFile.value.filename,
+            fileContent: activeFile.value.code,
         }
         showFileHistoryModal.value = true
         hideFileActions()
@@ -410,7 +411,11 @@ onUnmounted(() => {
             <CodeEditor v-model="activeFile.code" :language="activeFile.language" :key="route.path + '-' + route.params.id + '-' + activeFile.filename"></CodeEditor>
         </div>
         <Modal width="1200px" @close="showFileHistoryModal = false" v-if="showFileHistoryModal">
-            <FileHistory :snippet-id="fileHistoryModalData.snippetId" :filename="fileHistoryModalData.filename" />
+            <FileHistory
+                :snippet-id="fileHistoryModalData.snippetId"
+                :filename="fileHistoryModalData.filename"
+                :file-content="fileHistoryModalData.fileContent"
+            />
         </Modal>
     </Grid>
 </template>

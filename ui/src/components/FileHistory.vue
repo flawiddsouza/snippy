@@ -13,7 +13,11 @@ const props = defineProps({
     filename: {
         type: String,
         required: true
-    }
+    },
+    fileContent: {
+        type: String,
+        required: true
+    },
 })
 
 const fileHistoryFiles = ref([])
@@ -35,6 +39,13 @@ async function fetchFileHistory() {
     const response = await fetch(`/snippets/${props.snippetId}/file-history/files/${selectedFilename.value}`)
     fileHistory.value = await response.json()
     if(fileHistory.value.length > 0) {
+        if (props.filename === selectedFilename.value && props.fileContent !== fileHistory.value[0].code) {
+            fileHistory.value.unshift({
+                code: props.fileContent,
+                language: fileHistory.value[0].language,
+                type: 'Unsaved'
+            })
+        }
         selectedFileHistory.value = fileHistory.value[0]
     }
 }
@@ -113,7 +124,12 @@ watch(selectedFileHistory, () => {
     <div style="margin-top: 1rem">
         <select style="width: 100%" v-model="selectedFileHistory">
             <option v-for="fileHistoryItem in fileHistory" :value="fileHistoryItem">
-                {{ formatTimestamp(fileHistoryItem.created) }}<template v-if="fileHistoryItem.type === 'Last Saved'"> (Last Saved)</template>
+                <template v-if="fileHistoryItem.type === 'Unsaved'">
+                    Unsaved
+                </template>
+                <template v-else>
+                    {{ formatTimestamp(fileHistoryItem.created) }}<template v-if="fileHistoryItem.type === 'Last Saved'"> (Last Saved)</template>
+                </template>
             </option>
         </select>
     </div>
